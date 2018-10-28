@@ -1,4 +1,3 @@
-/* eslint-disable */
 export const on = (function () {
     if (document.addEventListener) {
         return function (element, event, handler) {
