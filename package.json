@@ -1,0 +1,12 @@
+{
+    "name": "fat-validator",
+    "version": "1.0.0",
+    "description": "vue validate plug-in unit",
+    "author": "FatGe <duangci@aliyun.com>",
+    "main": "index.js",
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1",
+        "publish": "npm publish ."
+    },
+    "license": "ISC"
+}
