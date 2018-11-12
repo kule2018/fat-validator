@@ -1,5 +1,7 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 const on = (function () {
     if (document.addEventListener) {
         return function (element, event, handler) {
@@ -65,7 +67,7 @@ class eventHandler {
         const { handler } = subscribers[name];
 
         delete subscribers[name];
-        delete context.validateErrs[name];
+        delete context.errors[name];
         return handler
     }
 
@@ -74,7 +76,7 @@ class eventHandler {
         const { element, rules } = subscribers[name];
         const error = findFailNeed(element.value, rules);
         // 脏更新
-        context.validateErrs[name] = error;
+        context.errors[name] = error;
         context.$forceUpdate();
         return error.success
     }
@@ -86,11 +88,11 @@ class eventHandler {
         let res = keys.map(id => {
             const { element, rules, name } = subscribers[id];
             const value = element.value || context[name];
-            context.validateErrs[name] = findFailNeed(
+            context.errors[name] = findFailNeed(
                 value,
                 rules
             );
-            return context.validateErrs[name].success
+            return context.errors[name].success
         }).filter(item => item);
 
         context.$forceUpdate();
@@ -98,92 +100,92 @@ class eventHandler {
     }
 }
 
-var index = {
-    install (Vue) {
-        let eventHandler$$1 = null;
-        let context = null;
-        Vue.directive('validate', {
-            bind (element, binding, vnode) {
-                let { arg: name } = binding;
-                const { modifiers, value: rules } = binding;
-                const method = Object.keys(modifiers)[0];
+let eventHandler$$1 = null;
+let context = null;
 
-                context = vnode.context;
+function index (Vue) {
+    Vue.directive('validate', {
+        bind (element, binding, vnode) {
+            let { arg: name } = binding;
+            const { modifiers, value: rules } = binding;
+            const method = Object.keys(modifiers)[0];
 
-                if (eventHandler$$1) {
-                    eventHandler$$1.bind(context);
-                } else {
-                    eventHandler$$1 = new eventHandler(context);
-                }
+            context = vnode.context;
 
-                const handler = function () {
-                    eventHandler$$1.broadcast(name);
-                };
-
-                eventHandler$$1.subscribe({
-                    name,
-                    method,
-                    rules,
-                    element,
-                    handler
-                });
-
-                method && on(element, method, handler);
-            },
-
-            unbind (element, binding) {
-                const { arg: name, modifiers } = binding;
-                const method = Object.keys(modifiers)[0];
-                const handler = eventHandler$$1.removeSubscribe(name);
-
-                method && off(element, method, handler);
+            if (eventHandler$$1) {
+                eventHandler$$1.bind(context);
+            } else {
+                eventHandler$$1 = new eventHandler(context);
             }
-        });
 
-        Vue.mixin({
-            data () {
-                return {
-                    validateErrs: {
-                        get (param) {
-                            return this[param]
-                                ? this[param]
-                                : {
-                                    warn: '',
-                                    success: true
-                                }
-                        },
-                        validate (name) {
-                            try {
-                                return eventHandler$$1.broadcast(name)
-                            } catch (error) {
-                                console.warn('Please confirm v-validate is bound.', error);
-                            }
-                        },
-                        validateAll () {
-                            return eventHandler$$1
-                                ? eventHandler$$1.broadcastAll()
-                                : !eventHandler$$1
-                        },
-                        reset (name) {
-                            delete this[name];
-                            context && context.$forceUpdate();
-                        },
-                        resetAll () {
-                            Object.keys(this).forEach(key => {
-                                if (
-                                    this[key] &&
-                                    typeof this[key] !== 'function'
-                                ) {
-                                    delete this[key];
-                                }
-                            });
-                            context && context.$forceUpdate();
+            const handler = function () {
+                eventHandler$$1.broadcast(name);
+            };
+
+            eventHandler$$1.subscribe({
+                name,
+                method,
+                rules,
+                element,
+                handler
+            });
+
+            method && on(element, method, handler);
+        },
+
+        unbind (element, binding) {
+            const { arg: name, modifiers } = binding;
+            const method = Object.keys(modifiers)[0];
+            const handler = eventHandler$$1.removeSubscribe(name);
+
+            method && off(element, method, handler);
+        }
+    });
+}
+
+const validateResult = {
+    data () {
+        return {
+            errors: {
+                get (param) {
+                    return this[param]
+                        ? this[param]
+                        : {
+                            warn: '',
+                            success: true
                         }
+                },
+                validate (name) {
+                    try {
+                        return eventHandler$$1.broadcast(name)
+                    } catch (error) {
+                        console.warn('Please confirm v-validate is bound.', error);
                     }
+                },
+                validateAll () {
+                    return eventHandler$$1
+                        ? eventHandler$$1.broadcastAll()
+                        : !eventHandler$$1
+                },
+                reset (name) {
+                    delete this[name];
+                    context && context.$forceUpdate();
+                },
+                resetAll () {
+                    Object.keys(this).forEach(key => {
+                        if (
+                            this[key] &&
+                            typeof this[key] !== 'function'
+                        ) {
+                            delete this[key];
+                        }
+                    });
+                    context && context.$forceUpdate();
                 }
             }
-        });
-    }
+        }
+    }   
 };
 
-module.exports = index;
+exports.default = index;
+exports.validateResult = validateResult;
