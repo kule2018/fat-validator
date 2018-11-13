@@ -56,7 +56,7 @@ export default {
 </script>
 ```
 
-1. 组件的`data`中维护表单的数据`form`以及待验证的规则`validates`，通过`() => {}`，将`this`指针绑定在当前组件内，省去传值。
+1. 组件的`data`中维护表单的数据`form`以及待验证的规则`validates`，通过`() => {}`，将`this`指针绑定在当前组件内，省去传值；
 
 2. `v-validate:nativeInput.blur`当前`input`需要校验，校验结果的key为`nativeInput`，`blur`代表失焦校验；
    

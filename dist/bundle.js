@@ -34,7 +34,7 @@ const off = (function () {
     }
 })();
 
-const findFailNeed = (value = {}, rules) => {
+const findFailRule = (rules) => {
     let failRule = null;
     if (Array.isArray(rules)) {
         failRule = rules.find(item => {
@@ -48,57 +48,54 @@ const findFailNeed = (value = {}, rules) => {
 };
 
 class eventHandler {
-    constructor (context) {
-        this.context = context;
-        this.subscribers = {};
+        constructor (context) {
+            this.context = context;
+            this.subscribers = {};
+        }
+
+        bind (context) {
+            this.context = context;
+        }
+
+        subscribe (options) {
+            const { name } = options;
+            this.subscribers[name] = Object.assign({}, options);
+        }
+
+        removeSubscribe (name) {
+            const { context, subscribers } = this;
+            const { handler } = subscribers[name];
+
+            delete subscribers[name];
+            delete context.errors[name];
+            return handler
+        }
+
+        broadcast (name) {
+            const { context, subscribers } = this;
+            const { rules } = subscribers[name];
+            const error = findFailRule(rules);
+            // 脏更新
+            context.errors[name] = error;
+            context.$forceUpdate();
+            return error.success
+        }
+
+        broadcastAll () {
+            const { context, subscribers } = this;
+            const keys = Object.keys(subscribers);
+
+            let res = keys.map(id => {
+                const { rules, name } = subscribers[id];
+                context.errors[name] = findFailRule(rules);
+
+                return context.errors[name].success
+            }).filter(item => item);
+
+            context.$forceUpdate();
+            return keys.length === res.length
+        }
     }
-
-    bind (context) {
-        this.context = context;
-    }
-
-    subscribe (options) {
-        const { name } = options;
-        this.subscribers[name] = Object.assign({}, options);
-    }
-
-    removeSubscribe (name) {
-        const { context, subscribers } = this;
-        const { handler } = subscribers[name];
-
-        delete subscribers[name];
-        delete context.errors[name];
-        return handler
-    }
-
-    broadcast (name) {
-        const { context, subscribers } = this;
-        const { element, rules } = subscribers[name];
-        const error = findFailNeed(element.value, rules);
-        // 脏更新
-        context.errors[name] = error;
-        context.$forceUpdate();
-        return error.success
-    }
-
-    broadcastAll () {
-        const { context, subscribers } = this;
-        const keys = Object.keys(subscribers);
-
-        let res = keys.map(id => {
-            const { element, rules, name } = subscribers[id];
-            const value = element.value || context[name];
-            context.errors[name] = findFailNeed(
-                value,
-                rules
-            );
-            return context.errors[name].success
-        }).filter(item => item);
-
-        context.$forceUpdate();
-        return keys.length === res.length
-    }
-}
 
 let eventHandler$$1 = null;
 let context = null;
@@ -106,8 +103,8 @@ let context = null;
 function index (Vue) {
     Vue.directive('validate', {
         bind (element, binding, vnode) {
-            let { arg: name } = binding;
-            const { modifiers, value: rules } = binding;
+            // let { arg: name } = binding
+            const { arg: name, modifiers, value: rules } = binding;
             const method = Object.keys(modifiers)[0];
 
             context = vnode.context;
@@ -126,7 +123,6 @@ function index (Vue) {
                 name,
                 method,
                 rules,
-                element,
                 handler
             });
 

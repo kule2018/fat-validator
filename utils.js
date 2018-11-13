@@ -30,7 +30,7 @@ export const off = (function () {
     }
 })()
 
-export const findFailNeed = (value = {}, rules) => {
+export const findFailRule = (rules) => {
     let failRule = null
     if (Array.isArray(rules)) {
         failRule = rules.find(item => {

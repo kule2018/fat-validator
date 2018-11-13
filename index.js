@@ -7,8 +7,8 @@ let context = null
 export default function (Vue) {
     Vue.directive('validate', {
         bind (element, binding, vnode) {
-            let { arg: name } = binding
-            const { modifiers, value: rules } = binding
+            // let { arg: name } = binding
+            const { arg: name, modifiers, value: rules } = binding
             const method = Object.keys(modifiers)[0]
 
             context = vnode.context
@@ -27,7 +27,6 @@ export default function (Vue) {
                 name,
                 method,
                 rules,
-                element,
                 handler
             })
 
