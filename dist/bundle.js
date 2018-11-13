@@ -38,7 +38,7 @@ const findFailRule = (rules) => {
     let failRule = null;
     if (Array.isArray(rules)) {
         failRule = rules.find(item => {
-            return !item.need(value)
+            return !item.need()
         });
     }
     return {
